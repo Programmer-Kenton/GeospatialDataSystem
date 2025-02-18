@@ -1,0 +1,2 @@
+/usr/bin/ar qc libservice_lib.a CMakeFiles/service_lib.dir/GeoTask.cpp.o CMakeFiles/service_lib.dir/RTreeManager.cpp.o
+/usr/bin/ranlib libservice_lib.a
