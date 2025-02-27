@@ -10,6 +10,10 @@
 
 #include "GeoObject.h"
 #include "RTreeManager.h"
+#include "GeoLogger.h"
+#include "ThreadPool.h"
+#include "httplib.h"
+#include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <vector>
 #include <mutex>
@@ -23,6 +27,8 @@ extern std::mutex delete_mutex;
 extern std::unordered_set<int> deleteRtreeSet; // 存储R树要删除的id号对应的信息
 extern std::mutex deleteRTree_mutex;
 extern std::string fileName; // CSV文件路径
+extern GeoLogger logger;
+extern httplib::Server server;
 
 #define POINT "Point"
 #define LINE "Line"

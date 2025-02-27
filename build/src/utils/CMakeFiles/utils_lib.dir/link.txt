@@ -1,2 +1,0 @@
-/usr/bin/ar qc libutils_lib.a CMakeFiles/utils_lib.dir/GeoTools.cpp.o
-/usr/bin/ranlib libutils_lib.a

@@ -18,6 +18,9 @@ std::mutex delete_mutex;
 std::unordered_set<int> deleteRtreeSet; // 存储R树要删除的id号对应的信息
 std::mutex deleteRTree_mutex;
 std::string fileName = "/usr/local/WorkSpace/GeospatialDataSystem/data/geospatial_data.csv";
+// 初始化日志
+GeoLogger logger("GeoLog.txt", true);  // 使用异步日志
+httplib::Server server;
 
 // RTreeManager 的初始化
 RTreeManager* manager = &RTreeManager::getInstance();

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpublic_lib.a CMakeFiles/public_lib.dir/GeoObject.cpp.o CMakeFiles/public_lib.dir/Public.cpp.o
-/usr/bin/ranlib libpublic_lib.a

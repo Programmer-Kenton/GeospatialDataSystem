@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地理信息数据查询系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #3498db;
+            --background: #f5f7fa;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 2rem 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            margin: 1rem 0;
+        }
+
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.primary {
+            background: linear-gradient(135deg, var(--primary-color), #45a049);
+            color: white;
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 15px rgba(0, 0, 0, 0.05);
+            margin: 2rem 0;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover td {
+            background-color: #f0fff0;
+        }
+
+        #statistics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card span {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        #pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 2rem 0;
+        }
+
+        .page-button {
+            padding: 8px 16px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .page-button.active {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            #statistics {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><i class="fas fa-globe-asia"></i> 地理信息数据查询系统</h1>
+
+    <form id="queryForm">
+        <label for="coords"><i class="fas fa-map-marker-alt"></i> 请输入坐标数据：</label>
+        <textarea id="coords" placeholder="示例格式：75.692101,8.418863 -142.224468,70.396431 ..."></textarea>
+        <button type="submit" class="primary">
+            <i class="fas fa-search"></i> 查询数据
+        </button>
+    </form>
+
+    <div id="statistics" style="display: none;">
+        <div class="stat-card">
+            <p>点的个数 <span id="pointCount">0</span></p>
+        </div>
+        <div class="stat-card">
+            <p>线的个数 <span id="lineCount">0</span></p>
+        </div>
+        <div class="stat-card">
+            <p>面的个数 <span id="polygonCount">0</span></p>
+        </div>
+    </div>
+
+    <table id="geoTable" style="display: none;">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>类型</th>
+            <th>坐标</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="geoDataBody"></tbody>
+    </table>
+
+    <div id="pagination"></div>
+
+    <div class="action-buttons">
+        <button id="downloadBtn" class="primary" style="display: none;">
+            <i class="fas fa-download"></i> 下载CSV
+        </button>
+        <button id="randomGenerateBtn" class="secondary">
+            <i class="fas fa-random"></i> 随机生成数据
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;       // 当前页数
+    const itemsPerPage = 10;   // 每页显示的条数
+    let geoData = [];          // 存储查询结果数据
+
+    document.getElementById('queryForm').addEventListener('submit', handleQuery);
+    document.getElementById('downloadBtn').addEventListener('click', handleDownload);
+    document.getElementById('randomGenerateBtn').addEventListener('click', handleRandomGenerate);
+
+    // 查询地理数据
+    function handleQuery(event) {
+        event.preventDefault();
+
+        let inputText = document.getElementById('coords').value.trim();
+        // 将字符串转换成数组（例如："75.692101,8.418863 -142.224468,70.396431 ..."）
+        let coordinates = inputText.split(" ").map(pair => {
+            let [lng, lat] = pair.split(",");
+            return [parseFloat(lng), parseFloat(lat)];
+        });
+
+        if (coordinates.length < 3) {
+            alert("错误: 面查询至少需要三个坐标点！");
+            return;
+        }
+
+        console.log('请求的URL:', 'http://59.110.175.91:8080/query');
+
+        // 向后端发送请求获取数据
+        fetch('http://59.110.175.91:8080/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ coordinates: coordinates }),
+            mode: 'cors'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('查询失败: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('查询结果:', data);
+                // 更新数据和统计信息
+                geoData = data.data || [];
+                document.getElementById('pointCount').innerText = data.statistics.point_count;
+                document.getElementById('lineCount').innerText = data.statistics.line_count;
+                document.getElementById('polygonCount').innerText = data.statistics.polygon_count;
+                currentPage = 1; // 重置页码
+                displayData();
+            })
+            .catch(error => {
+                console.error('Error querying geo data:', error);
+                alert('查询数据失败: ' + error.message);
+            });
+    }
+
+    // 显示数据并分页
+    function displayData() {
+        const tableBody = document.getElementById('geoDataBody');
+        tableBody.innerHTML = '';
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageData = geoData.slice(startIndex, endIndex);
+
+        pageData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.type}</td>
+          <td>${item.coordinates}</td>
+          <td><button onclick="handleDelete('${item.id}')">删除</button></td>
+        `;
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById('geoTable').style.display = 'table';
+        document.getElementById('statistics').style.display = 'block';
+        document.getElementById('downloadBtn').style.display = 'inline-block';
+        updatePagination();
+    }
+
+    // 更新分页按钮
+    function updatePagination() {
+        const totalPages = Math.ceil(geoData.length / itemsPerPage);
+        const paginationDiv = document.getElementById('pagination');
+        paginationDiv.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.classList.add('page-button');
+            pageButton.onclick = () => goToPage(i);
+            paginationDiv.appendChild(pageButton);
+        }
+    }
+
+    // 跳转到指定页
+    function goToPage(page) {
+        currentPage = page;
+        displayData();
+    }
+
+    // 删除数据
+    function handleDelete(id) {
+        const index = geoData.findIndex(item => item.id === id);
+        if (index !== -1) {
+            geoData.splice(index, 1);
+            displayData();
+            fetch(`http://59.110.175.91:8080/delete/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('删除成功');
+                    } else {
+                        alert('删除失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting data:', error);
+                    alert('删除请求错误');
+                });
+        }
+    }
+
+    // 随机生成数据
+    function handleRandomGenerate() {
+        const randomNumber = Math.floor(Math.random() * 100) + 1;
+        alert(`随机生成了 ${randomNumber} 条数据并发送给 C++ 后端进行插入`);
+        fetch('http://59.110.175.91:8080/generate', {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ num: randomNumber })
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('数据生成并提交成功');
+                } else {
+                    alert('数据生成失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error generating random data:', error);
+                alert('随机生成数据请求错误');
+            });
+    }
+
+    // 下载 CSV 文件
+    function handleDownload() {
+        const csvContent = "ID,类型,坐标\n" + geoData.map(item => `${item.id},${item.type},${item.coordinates}`).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'geo_data.csv';
+        a.click();
+    }
+</script>
+</body>
+</html>
+
+

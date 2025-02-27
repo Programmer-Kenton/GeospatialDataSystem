@@ -20,7 +20,10 @@
 class GeoTools {
 public:
     // 读取CSV文件数据放入R树
-    static std::vector<GeoObject> readCSV(const std::string &fileName);
+    static std::vector<GeoObject> readCSV(const std::string &fileName,size_t startLine,size_t endLine);
+
+    // 统计CSV文件行数
+    static size_t countLines(const std::string &fileName);
 
     // 解析坐标字符串
     static std::vector<Point> parseCoordinates(const std::string &coord_str);
@@ -33,6 +36,8 @@ public:
 
     // 修改CSV文件中的数据
     static void modifyCSV(const std::string& fileName);
+
+
 };
 
 

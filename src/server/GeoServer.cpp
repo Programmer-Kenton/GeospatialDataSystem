@@ -148,33 +148,57 @@ void GeoServer::deleteRtreeData(unsigned long long int id, int num) {
 }
 
 void GeoServer::initSystem() {
-    // 读取 CSV 文件数据
-    std::cout << "程序开始... 单线程读取CSV文件地理信息数据" << std::endl;
+
+    // 设置线程池
+    pool.setMode(PoolMode::MODE_CACHED);
+    pool.start(THREAD_INIT_COUNT);
+
+    logger.setLogLevel(INFO);  // 设置日志级别
+
+    // 1. 多线程读取CSV文件
+    std::cout << "程序开始... 多线程读取CSV文件地理信息数据" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    auto geo_objects = GeoTools::readCSV(fileName);
-    if (geo_objects.empty()) {
-        std::cerr << "错误: 没有读取到任何地理对象。" << std::endl;
+
+    std::vector<GeoObject> geo_objects;
+    std::mutex geo_mutex;  // 保护 geo_objects
+
+    // 计算CSV文件总行数
+    size_t totalLines = GeoTools::countLines(fileName); // 获取CSV文件总行数
+    size_t batchSize = totalLines / THREAD_INIT_COUNT; // 计算每个线程需要读取的行数
+
+    std::vector<std::future<void>> csvTasks;
+
+    for (int i = 0; i < THREAD_INIT_COUNT; ++i) {
+        size_t startLine = i * batchSize + 1; // 多线程读取跳过CSV文件表头
+        size_t endLine = (i == THREAD_INIT_COUNT - 1) ? totalLines : startLine + batchSize;
+
+        csvTasks.push_back(pool.submitTask([this, &geo_objects, &geo_mutex, startLine, endLine](){
+            auto partial_data = GeoTools::readCSV(fileName, startLine, endLine);
+            std::lock_guard<std::mutex> lock(geo_mutex);
+            geo_objects.insert(geo_objects.end(), partial_data.begin(), partial_data.end());
+        }));
     }
+
+    for (auto &csvTask : csvTasks) {
+        csvTask.get();
+    }
+
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
-    std::cout << "读取CSV文件数据结束耗时: " << duration.count() << "秒" << std::endl;
+    logger.log(INFO, "多线程读取CSV文件数据结束，耗时: " + std::to_string(duration.count()) + " 秒");
 
-    // 构建R树索引
-    std::cout << "程序开始... 计算每个地理信息的最小外接框并构建R树索引(二次分裂算法构建):" << std::endl;
+    // 2. 多线程构建R树
+    std::cout << "程序开始... 多线程并行构建R树:" << std::endl;
     auto start2 = std::chrono::high_resolution_clock::now();
 
-    manager->buildRTree(geo_objects);
+    // 调用RTreeManager构建R树
+    manager->buildRTree(geo_objects, pool); // 使用 manager 调用 buildRTree
 
     auto end2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration2 = end2 - start2;
-    std::cout << "二次分裂算法 构建R树耗时: " << duration2.count() << "秒" << std::endl;
+    logger.log(INFO, "多线程并行构建R树耗时: " + std::to_string(duration2.count()) + " 秒");
 
-    // 打印R树内容
-    std::cout << "开始打印R树内容..." << std::endl;
-    manager->printRTree();
-
-    // 启动CSV定时任务线程
-    task.start(); // 启动定时器
+    // task.start(); // 开启定时任务
 }
 
 void GeoServer::queryRTreePolygon() {

@@ -13,6 +13,7 @@
 #include "GeoTask.h"
 #include <fstream>
 #include <random>
+//#include <python3.8/Python.h>
 #include <python3.12/Python.h>
 
 class GeoServer {
@@ -32,6 +33,8 @@ public:
 
 private:
     GeoTask task;
+
+    ThreadPool pool;
 };
 
 
