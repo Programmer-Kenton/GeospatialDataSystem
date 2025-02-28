@@ -22,9 +22,9 @@
 extern unsigned long long id;
 extern std::vector<GeoObject> insertVec; // 存储新生成的地理信息数据
 extern std::mutex insert_mutex;
-extern std::unordered_set<int> deleteSet; // 存储CSV文件要定时删除的id号
+extern std::unordered_set<unsigned long long> deleteSet; // 存储CSV文件要定时删除的id号
 extern std::mutex delete_mutex;
-extern std::unordered_set<int> deleteRtreeSet; // 存储R树要删除的id号对应的信息
+extern std::unordered_set<unsigned long long> deleteRtreeSet; // 存储R树要删除的id号对应的信息
 extern std::mutex deleteRTree_mutex;
 extern std::string fileName; // CSV文件路径
 extern GeoLogger logger;

@@ -23,10 +23,10 @@ public:
     void initSystem();
 
     // 调用Python脚本生成地理信息数据并插入R树
-    void insertRTreeData(int num, unsigned long long initID);
+    bool insertRTreeData(int num, unsigned long long initID);
 
     // 删除R树中的数据
-    void deleteRtreeData(unsigned long long int id, int num);
+    bool deleteRtreeData(unsigned long long maxId,int num,unsigned long long deleteId = 0);
 
     // 查询相交的面并统计结果
     void queryRTreePolygon();

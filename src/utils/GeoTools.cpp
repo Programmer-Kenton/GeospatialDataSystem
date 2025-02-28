@@ -105,10 +105,10 @@ std::vector<Point> GeoTools::parseCoordinates(const std::string &coord_str) {
     return coords;
 }
 
-void GeoTools::generateRandomIds(unsigned long long int id, int num) {
+void GeoTools::generateRandomIds(unsigned long long int deleteId, int num) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<unsigned long long> dist(1, id);
+    std::uniform_int_distribution<unsigned long long> dist(1, deleteId);
 
     // 预分配存储空间 减少动态扩展的开销
     std::unordered_set<unsigned long long> tempSet;
@@ -129,8 +129,8 @@ void GeoTools::generateRandomIds(unsigned long long int id, int num) {
 
     // 打印随机生成的ID
     std::cout << "随机生成的ID: ";
-    for (const auto& id : tempSet) {
-        std::cout << id << " ";
+    for (const auto& tempId : tempSet) {
+        std::cout << tempId << " ";
     }
     std::cout << std::endl;
 }

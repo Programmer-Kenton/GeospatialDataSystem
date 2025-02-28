@@ -13,9 +13,9 @@ unsigned long long id = 0;
 
 std::vector<GeoObject> insertVec;
 std::mutex insert_mutex;
-std::unordered_set<int> deleteSet;
+std::unordered_set<unsigned long long> deleteSet;
 std::mutex delete_mutex;
-std::unordered_set<int> deleteRtreeSet; // 存储R树要删除的id号对应的信息
+std::unordered_set<unsigned long long> deleteRtreeSet; // 存储R树要删除的id号对应的信息
 std::mutex deleteRTree_mutex;
 std::string fileName = "/usr/local/WorkSpace/GeospatialDataSystem/data/geospatial_data.csv";
 // 初始化日志

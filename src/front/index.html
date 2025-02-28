@@ -308,7 +308,9 @@
           <td>${item.id}</td>
           <td>${item.type}</td>
           <td>${item.coordinates}</td>
-          <td><button onclick="handleDelete('${item.id}')">删除</button></td>
+            <td>
+                <button onclick="confirmDelete('${item.id}')">删除</button>
+            </td>
         `;
             tableBody.appendChild(row);
         });
@@ -340,43 +342,89 @@
         displayData();
     }
 
-    // 删除数据
-    function handleDelete(id) {
-        const index = geoData.findIndex(item => item.id === id);
-        if (index !== -1) {
-            geoData.splice(index, 1);
-            displayData();
-            fetch(`http://59.110.175.91:8080/delete/${id}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            })
-                .then(response => {
-                    if (response.ok) {
-                        alert('删除成功');
-                    } else {
-                        alert('删除失败');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting data:', error);
-                    alert('删除请求错误');
-                });
+
+    // 删除数据前提示确认
+    function confirmDelete(id) {
+        if (confirm("确定要删除该数据吗？")) {
+            handleDelete(id);
         }
+    }
+
+    // 删除数据
+   async function handleDelete(id) {
+       try {
+           // 显示加载状态
+           const btn = document.querySelector(`button[onclick="confirmDelete('${id}')"]`);
+           btn.disabled = true;
+           btn.innerHTML = '<i class="fas fa-spinner"></i> 删除中...';
+
+           // 发送请求
+           const response = await fetch(`http://59.110.175.91:8080/delete/${encodeURIComponent(id)}`, {
+               method: 'DELETE',
+               headers: {
+                   'Content-Type': 'application/json',
+                   'Accept': 'application/json'
+               },
+               mode: 'cors'  // 确保 CORS 设置正确
+           });
+
+           // 调试输出请求响应
+           console.log("Delete response status:", response.status);
+           const responseText = await response.text();
+           console.log("Delete response body:", responseText);
+
+           // 处理响应
+           if (!response.ok) {
+               throw new Error(`HTTP错误: ${response.status}, ${responseText}`);
+           }
+
+           // 更新本地数据
+           geoData = geoData.filter(item => item.id !== id);
+
+           // 智能调整分页
+           const totalPages = Math.ceil(geoData.length / itemsPerPage);
+           if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+
+           displayData();
+       } catch (error) {
+           console.error('删除失败:', error);
+           alert(`删除失败: ${error.message}`);
+       } finally {
+           const btn = document.querySelector(`button[onclick="confirmDelete('${id}')"]`);
+           if (btn) {
+               btn.disabled = false;
+               btn.innerHTML = '删除';
+           }
+       }
     }
 
     // 随机生成数据
     function handleRandomGenerate() {
-        const randomNumber = Math.floor(Math.random() * 100) + 1;
-        alert(`随机生成了 ${randomNumber} 条数据并发送给 C++ 后端进行插入`);
-        fetch('http://59.110.175.91:8080/generate', {
+
+        // 生成一个1万到10万之间的随机数字
+        const randomNumber = Math.floor(Math.random() * (100000 - 10000 + 1)) + 10000;
+
+        // 提示用户生成的数字
+        alert("随机插入的数据条数为: " + randomNumber);
+
+        // 向后端发送请求
+        fetch('http://59.110.175.91:8080/insert', {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ num: randomNumber })
+            body: JSON.stringify({ num: randomNumber })  // 发送随机生成的数字
         })
             .then(response => {
                 if (response.ok) {
+                    return response.json();  // 假设后端返回的是JSON数据
+                } else {
+                    alert('数据生成失败');
+                    throw new Error('Failed to generate data');
+                }
+            })
+            .then(data => {
+                // 如果后端成功插入数据，可以根据返回的信息做进一步处理
+                if (data.status === 'success') {
                     alert('数据生成并提交成功');
                 } else {
                     alert('数据生成失败');

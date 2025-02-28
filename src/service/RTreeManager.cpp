@@ -8,6 +8,7 @@
 
 #include "RTreeManager.h"
 #include "Public.h"
+#include "GeoTools.h"
 
 
 void RTreeManager::buildRTree(const std::vector<GeoObject>& geo_objects,ThreadPool& pool) {
@@ -169,6 +170,7 @@ bool RTreeManager::deleteRTree() {
         }
     }
 
+    id = GeoTools::getInitID(fileName);
     return true;
 }
 
@@ -194,5 +196,7 @@ std::string RTreeManager::box_to_string(const Box &box) {
     // 返回格式化的字符串
     return oss.str();
 }
+
+
 
 

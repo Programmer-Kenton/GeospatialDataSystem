@@ -52,7 +52,6 @@ public:
     // 删除R树的数据
     bool deleteRTree();
 
-
     // 打印R树
     void printRTree() const;
 

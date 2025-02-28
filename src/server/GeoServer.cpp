@@ -12,14 +12,14 @@
 
 
 
-void GeoServer::insertRTreeData(int num, unsigned long long int initID) {
+bool GeoServer::insertRTreeData(int num, unsigned long long int initID) {
     // 初始化Python解释器
     Py_Initialize();
 
     // 检查Python解释器是否成功初始化
     if (!Py_IsInitialized()) {
         std::cerr << "Python初始化失败！" << std::endl;
-        return;
+        return false;
     }
 
     try {
@@ -124,6 +124,8 @@ void GeoServer::insertRTreeData(int num, unsigned long long int initID) {
                 std::lock_guard<std::shared_mutex> lock(rtree_mutex);
 
                 manager->insertRTree(bounding_box, oss.str());  // 插入R树
+
+                // std::lock_guard<std::mutex> lockGuard(insert_mutex);
                 insertVec.push_back(obj);  // 添加到地理对象向量
             }
         }
@@ -136,15 +138,13 @@ void GeoServer::insertRTreeData(int num, unsigned long long int initID) {
     }catch (const std::exception& e){
         // 捕获并输出异常信息
         std::cerr << "错误: " << e.what() << std::endl;
+        return false;
     }
 
     // 关闭Python解释器
     Py_Finalize();
-}
 
-void GeoServer::deleteRtreeData(unsigned long long int id, int num) {
-    GeoTools::generateRandomIds(id,num);
-    manager->deleteRTree();
+    return true;
 }
 
 void GeoServer::initSystem() {
@@ -198,6 +198,8 @@ void GeoServer::initSystem() {
     std::chrono::duration<double> duration2 = end2 - start2;
     logger.log(INFO, "多线程并行构建R树耗时: " + std::to_string(duration2.count()) + " 秒");
 
+    // 获取初始ID值
+    id = GeoTools::getInitID(fileName);
     // task.start(); // 开启定时任务
 }
 
@@ -253,6 +255,25 @@ void GeoServer::queryRTreePolygon() {
     std::cout << "点的个数: " << point_count << std::endl;
     std::cout << "线的个数: " << line_count << std::endl;
     std::cout << "面的个数: " << polygon_count << std::endl;
+}
+
+
+bool GeoServer::deleteRtreeData(unsigned long long int maxId, int num, unsigned long long int deleteId) {
+    if (deleteId == 0){
+        GeoTools::generateRandomIds(maxId,num);
+    } else if (deleteId > 0){
+        {
+            std::lock_guard<std::mutex> lock(delete_mutex);
+            deleteSet.insert(deleteId);
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(deleteRTree_mutex);
+            deleteRtreeSet.insert(deleteId);
+        }
+    }
+
+    if (manager->deleteRTree()) return true;
 }
 
 
