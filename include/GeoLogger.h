@@ -60,7 +60,7 @@ private:
     std::string logLevelToString(LogLevel level);
 
 public:
-    explicit GeoLogger(std::string logFile = "GeoLog.txt",bool async = true);
+    explicit GeoLogger(std::string logFile = "GeoLog.log",bool async = true);
 
     ~GeoLogger();
 

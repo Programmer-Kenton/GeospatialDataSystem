@@ -1,0 +1,277 @@
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #3498db;
+    --accent-color: #FF9800;
+    --background: #f5f7fa;
+    --text-color: #2c3e50;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--background);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* 卡片样式 */
+.card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    padding: 2rem;
+    margin: 1.5rem 0;
+}
+
+/* 表单样式 */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.input-field {
+    width: 100%;
+    height: 120px;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 0.8rem;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.input-field:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn.primary {
+    background: linear-gradient(135deg, var(--primary-color), #45a049);
+    color: white;
+}
+
+.btn.secondary {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 统计卡片 */
+.stats-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.8rem;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+.stat-content span {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .stats-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse; /* 合并边框 */
+    margin: 1rem 0;
+    background: white;
+    border-radius: 8px; /* 圆角 */
+    overflow: hidden; /* 隐藏超出部分 */
+    box-shadow: 0 1px 15px rgba(0, 0, 0, 0.05); /* 阴影 */
+}
+
+/* 表头样式 */
+th {
+    background-color: var(--primary-color); /* 主色调 */
+    color: white;
+    font-weight: 600;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+/* 表格单元格样式 */
+td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0; /* 底部边框 */
+    text-align: left;
+}
+
+/* 表格行悬停效果 */
+tr:hover td {
+    background-color: #f5f5f5; /* 悬停背景色 */
+}
+
+/* 斑马纹效果 */
+tr:nth-child(even) td {
+    background-color: #f8f9fa; /* 偶数行背景色 */
+}
+
+/* 操作按钮样式 */
+td button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--secondary-color); /* 次色调 */
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+td button:hover {
+    background-color: #2980b9; /* 悬停背景色 */
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto; /* 水平滚动 */
+    }
+
+    table {
+        min-width: 600px; /* 最小宽度 */
+    }
+}
+
+
+/* 分页容器样式 */
+#pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px; /* 按钮间距 */
+    margin: 20px 0;
+}
+
+/* 分页按钮样式 */
+.page-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #f0f0f0; /* 默认背景色 */
+    color: var(--text-color); /* 文字颜色 */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 当前页按钮样式 */
+.page-button.active {
+    background-color: var(--primary-color); /* 主色调 */
+    color: white; /* 文字颜色 */
+    transform: scale(1.1); /* 放大效果 */
+}
+
+/* 按钮悬停效果 */
+.page-button:hover {
+    background-color: var(--secondary-color); /* 次色调 */
+    color: white; /* 文字颜色 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 阴影 */
+}
+
+@media (max-width: 768px) {
+    .stats-section {
+        grid-template-columns: 1fr; /* 统计卡片堆叠显示 */
+    }
+
+    .table-container {
+        overflow-x: auto; /* 水平滚动 */
+    }
+
+    table {
+        min-width: 600px; /* 最小宽度 */
+    }
+}

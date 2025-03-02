@@ -19,7 +19,7 @@
 #include <mutex>
 #include <string>
 
-extern unsigned long long id;
+extern std::atomic<unsigned long long int> id;
 extern std::vector<GeoObject> insertVec; // 存储新生成的地理信息数据
 extern std::mutex insert_mutex;
 extern std::unordered_set<unsigned long long> deleteSet; // 存储CSV文件要定时删除的id号
@@ -29,6 +29,7 @@ extern std::mutex deleteRTree_mutex;
 extern std::string fileName; // CSV文件路径
 extern GeoLogger logger;
 extern httplib::Server server;
+extern int deleteCount;
 
 #define POINT "Point"
 #define LINE "Line"

@@ -5,6 +5,7 @@ add_subdirectory(service)
 add_subdirectory(log)
 add_subdirectory(thread)
 add_subdirectory(http/cpp-httplib)
+add_subdirectory(http)
 
 add_executable(main main.cpp)
-target_link_libraries(main public_lib utils_lib server_lib service_lib log_lib pthread thread_lib ${Python3_LIBRARY})
+target_link_libraries(main public_lib utils_lib server_lib service_lib log_lib pthread thread_lib http_lib ${Python3_LIBRARY})

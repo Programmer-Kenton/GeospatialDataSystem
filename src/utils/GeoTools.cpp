@@ -26,54 +26,43 @@ std::vector<GeoObject> GeoTools::readCSV(const std::string &fileName,size_t star
     std::string line;
     size_t currentLine = 0;
 
-    // 跳过表头
-    if (startLine > 0) {
-        std::getline(file, line);  // 跳过表头
-        currentLine++;
+
+    // 跳过前面的行（包括表头）
+    for (size_t i = 1; i < startLine && std::getline(file, line); ++i) {
+        // 什么也不做，仅跳过
     }
 
-    // 向下跳过startLine之前的行
-    while (currentLine < startLine && std::getline(file, line)) {
-        currentLine++;
-    }
+    GeoObject obj;
 
-    // 读取数据直到endLine
-    while (currentLine < endLine && std::getline(file, line)) {
+    // 从startLine开始读取到endLine包括endLine
+    for(size_t i = startLine;i <= endLine && std::getline(file,line);++i){
         if (line.empty()) continue;
 
-        GeoObject obj;
         std::stringstream ss(line);
         std::string id_str, type_str, coords_str;
-
-        // 读取CSV三个字段 ID 类型 坐标数据
         if (!std::getline(ss, id_str, ',') ||
             !std::getline(ss, type_str, ',') ||
             !std::getline(ss, coords_str)) {
             std::cerr << "警告: 行格式错误，已跳过: " << line << std::endl;
-            logger.log(WARNING, "行格式错误，已跳过: " + line);  // 记录警告日志
+            logger.log(WARNING, "行格式错误，已跳过: " + line);
             continue;
         }
-
         obj.id = id_str;
         obj.type = type_str;
 
-        // 去除坐标字段的额外字符
-        coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '"'), coords_str.end()); // 移除双引号
-        coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '\r'), coords_str.end()); // 移除 \r 符号
+        // 去除可能的多余字符，如双引号和 \r
+        coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '"'), coords_str.end());
+        coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '\r'), coords_str.end());
 
-        // 解析坐标
+        // 解析坐标数据
         obj.coordinates = GeoTools::parseCoordinates(coords_str);
-
         if (!obj.coordinates.empty()) {
             geo_objects.push_back(obj);
         } else {
             std::cerr << "警告: 地理对象 " << obj.id << " 坐标解析失败，已跳过。" << std::endl;
-            logger.log(WARNING, "地理对象 " + obj.id + " 坐标解析失败，已跳过");  // 记录警告日志
+            logger.log(WARNING, "地理对象 " + obj.id + " 坐标解析失败，已跳过");
         }
-
-        currentLine++;
     }
-
     return geo_objects;
 }
 
@@ -105,13 +94,14 @@ std::vector<Point> GeoTools::parseCoordinates(const std::string &coord_str) {
     return coords;
 }
 
-void GeoTools::generateRandomIds(unsigned long long int deleteId, int num) {
+void GeoTools::generateRandomIds(int num) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<unsigned long long> dist(1, deleteId);
+    std::uniform_int_distribution<unsigned long long> dist(1, id);
 
     // 预分配存储空间 减少动态扩展的开销
     std::unordered_set<unsigned long long> tempSet;
+
 
     while (tempSet.size() < static_cast<size_t>(num)){
         tempSet.insert(dist(gen)); // 直接插入 避免重复ID
@@ -126,6 +116,9 @@ void GeoTools::generateRandomIds(unsigned long long int deleteId, int num) {
         std::lock_guard<std::mutex> lock(deleteRTree_mutex);
         deleteRtreeSet.insert(tempSet.begin(),tempSet.end());
     }
+
+    // 获取实际要删除的数量
+    deleteCount = deleteRtreeSet.size();
 
     // 打印随机生成的ID
     std::cout << "随机生成的ID: ";

@@ -1,0 +1,8 @@
+file(GLOB HTTP_SOURCES *.cpp *.h)
+file(GLOB SERVER_SOURCES ../server/*.cpp ../server/*.h)
+file(GLOB UTILS_SOURCES ../utils/*.cpp ../utils/*.h)
+file(GLOB SERVICE_SOURCES ../service/*.cpp ../service/*.h)
+file(GLOB LOG_SOURCES ../log/*.cpp ../log/*.h)
+file(GLOB PUBLIC_SOURCES ../public/*.cpp ../public/*.h)
+add_library(http_lib ${PUBLIC_SOURCES} ${HTTP_SOURCES}  ${SERVER_SOURCES} ${UTILS_SOURCES} ${SERVICE_SOURCES} ${LOG_SOURCES})
+target_link_directories(http_lib  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

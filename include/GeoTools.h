@@ -29,7 +29,7 @@ public:
     static std::vector<Point> parseCoordinates(const std::string &coord_str);
 
     // 生成num个不超过id的随机ID值 模拟传入要删除的id
-    static void generateRandomIds(unsigned long long id,int num);
+    static void generateRandomIds(int num);
 
     // 生成初始ID号
     static unsigned long long getInitID(const std::string &fileName);

@@ -1,5 +1,5 @@
 /**
- * @Description 线程类
+ * @Description 线程类封装单个工作线程
  * @Version 1.0.0
  * @Date 2025/2/18 21:03
  * @Github https://github.com/Programmer-Kenton
@@ -23,26 +23,25 @@
 class Thread {
 public:
 
-    // 线程函数对象类型
+    // 线程函数对象类型 参数为线程ID
     using ThreadFunc = std::function<void(int)>;
 
-    // 线程构造
-    Thread(ThreadFunc func);
+    // 构造函数 传入线程函数
+    explicit Thread(ThreadFunc func);
 
     // 析构函数
     ~Thread() = default;
 
-    // 启动线程
+    // 启动线程 内部调用 std::thread 并分离线程
     void start();
 
     // 获取线程Id
     int getId() const;
 
 private:
-    ThreadFunc func_;
-    static int generateId_;
-    int threadId_; // 保存线程ID
-    std::thread thread_; // 添加线程对象
+    ThreadFunc func_; // 线程执行的函数
+    int threadId_;       // 当前线程ID
+    static int nextId_;  // 用于生成唯一线程ID的静态变量
 };
 
 
