@@ -22,11 +22,11 @@ int main(int argc, char *argv[]) {
     if (!pServer.initSystem()) exit(-1);
 
 
-    GeoHttpServer server(&pServer);
+    GeoHttpServer geoHttpServer(&pServer);
 
     httplib::Server httpServer;
 
-    server.setupRoutes(httpServer);
+    geoHttpServer.setupRoutes(httpServer);
 
     // 启动监听 8080 端口
     httpServer.listen("0.0.0.0", 8080);

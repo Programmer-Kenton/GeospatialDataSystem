@@ -7,7 +7,7 @@
  */
 
 #include "Public.h"
-
+#include "RTreeManager.h"
 
 std::atomic<unsigned long long int> id = 0;
 
@@ -22,7 +22,7 @@ std::string fileName = "/usr/local/WorkSpace/GeospatialDataSystem/data/geospatia
 int deleteCount = -1;
 
 // 初始化日志
-GeoLogger logger("/usr/local/WorkSpace/GeospatialDataSystem/log/GeoLog.log", true);  // 使用异步日志
+GeoLogger logger("/usr/local/WorkSpace/GeospatialDataSystem/log/GeoSystem.log", true);  // 使用异步日志
 httplib::Server server;
 
 // RTreeManager 的初始化

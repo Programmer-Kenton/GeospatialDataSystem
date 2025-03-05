@@ -22,6 +22,7 @@ void GeoHttpServer::handleQuery(const httplib::Request &req, httplib::Response &
         } catch (const nlohmann::json::exception &e) {
             res.status = 400;
             res.set_content(R"({"status": "error", "message": "JSON 解析失败"})", "application/json");
+            logger.log(WARNING,R"({"status": "error", "message": "JSON 解析失败"})");
             return;
         }
 
@@ -29,6 +30,7 @@ void GeoHttpServer::handleQuery(const httplib::Request &req, httplib::Response &
         if (!request_data.contains("coordinates") || !request_data["coordinates"].is_array()) {
             res.status = 400;
             res.set_content(R"({"status": "error", "message": "错误: 坐标数据缺失或格式错误"})", "application/json");
+            logger.log(WARNING,R"({"status": "error", "message": "错误: 坐标数据缺失或格式错误"})");
             return;
         }
 
@@ -38,6 +40,7 @@ void GeoHttpServer::handleQuery(const httplib::Request &req, httplib::Response &
             if (!coord.is_array() || coord.size() != 2) {
                 res.status = 400;
                 res.set_content(R"({"status": "error", "message": "错误: 坐标格式错误，应为 [[lng, lat], [lng, lat], ...]"})", "application/json");
+                logger.log(WARNING,R"({"status": "error", "message": "错误: 坐标格式错误，应为 [[lng, lat], [lng, lat], ...]"})");
                 return;
             }
             coords.emplace_back(coord[0].get<double>(), coord[1].get<double>());
@@ -53,6 +56,7 @@ void GeoHttpServer::handleQuery(const httplib::Request &req, httplib::Response &
     } catch (const std::exception &e) {
         res.status = 500;
         res.set_content(R"({"status": "error", "message": "服务器内部错误"})", "application/json");
+        logger.log(ERROR,R"({"status": "error", "message": "服务器内部错误"})");
     }
 }
 
@@ -62,13 +66,23 @@ void GeoHttpServer::handleDelete(const httplib::Request &req, httplib::Response 
         int deleteId = std::stoi(req.matches[1]);
         int num = 1;
 
+        auto start = std::chrono::high_resolution_clock::now();
         bool success = server->deleteRtreeData(num, deleteId);
         res.status = success ? 200 : 404;
         res.set_content(success ? "删除成功" : "数据不存在", "application/plain");
 
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        if (success){
+            logger.log(INFO,"删除ID: " + std::to_string(deleteId) + "成功... 耗时: " + std::to_string(duration.count()) + "秒");
+        } else{
+            logger.log(ERROR,"删除ID: " + std::to_string(deleteId) + "失败...");
+        }
+
     } catch (const std::exception &e) {
         res.status = 500;
         res.set_content("删除失败: " + std::string(e.what()), "application/plain");
+        logger.log(WARNING,"删除失败: " + std::string(e.what()));
     }
 }
 
@@ -184,6 +198,7 @@ void GeoHttpServer::setupRoutes(httplib::Server &server) {
     server.Options("/delete/(\\d+)", [this](const httplib::Request &req, httplib::Response &res) { handleOptions(req, res); });
     server.Options("/insert", [this](const httplib::Request &req, httplib::Response &res) { handleOptions(req, res); });
     server.Options("/delete-random", [this](const httplib::Request &req, httplib::Response &res) { handleOptions(req, res); });
+    server.Options("/count", [this](const auto& req, auto& res) { handleOptions(req, res); });
 
     // 处理业务请求
     server.Post("/query", [this](const httplib::Request &req, httplib::Response &res) {
@@ -205,6 +220,11 @@ void GeoHttpServer::setupRoutes(httplib::Server &server) {
         setCORSHeaders(res, req.get_header_value("Origin")); // 统一设置 CORS 头
         handleDeleteGeoData(req, res);
     });
+
+    server.Get("/count", [this](const httplib::Request &req, httplib::Response &res) {
+        setCORSHeaders(res, req.get_header_value("Origin"));
+        handleGetTotal(req, res);
+    });
 }
 
 void GeoHttpServer::setCORSHeaders(httplib::Response &res, const std::string &origin) {
@@ -212,4 +232,32 @@ void GeoHttpServer::setCORSHeaders(httplib::Response &res, const std::string &or
     res.set_header("Access-Control-Allow-Methods", "POST, DELETE, PUT, GET, OPTIONS");
     res.set_header("Access-Control-Allow-Headers", "Content-Type");
     res.set_header("Access-Control-Allow-Credentials", "true");
+}
+
+void GeoHttpServer::handleGetTotal(const httplib::Request &req, httplib::Response &res) {
+    try {
+        // 调用业务层获取总数据量
+        unsigned long long totalEntries = server->GetGaoDataCount(); // 假设GeoServer有该方法
+
+        // 构造JSON响应
+        nlohmann::json response = {
+                {"status", "success"},
+                {"totalEntries", totalEntries},
+                {"timestamp", std::chrono::system_clock::now().time_since_epoch().count()}
+        };
+
+        res.status = 200;
+        res.set_content(response.dump(), "application/json");
+
+        // 记录日志
+        logger.log(INFO, "成功返回总数据量: " + std::to_string(totalEntries));
+    } catch (const std::exception &e) {
+        res.status = 500;
+        nlohmann::json errorResponse = {
+                {"status", "error"},
+                {"message", "获取数据量失败: " + std::string(e.what())}
+        };
+        res.set_content(errorResponse.dump(), "application/json");
+        logger.log(ERROR, "获取总数据量失败: " + std::string(e.what()));
+    }
 }

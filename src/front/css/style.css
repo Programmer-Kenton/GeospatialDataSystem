@@ -275,3 +275,84 @@ td button:hover {
         min-width: 600px; /* 最小宽度 */
     }
 }
+
+/* 加载状态 */
+button[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 分页按钮 */
+.page-button {
+    padding: 5px 10px;
+    margin: 0 2px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.page-button.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* 数字动画 */
+.num-update {
+    animation: highlight 0.5s ease;
+}
+
+@keyframes highlight {
+    from { color: #28a745; transform: scale(1.1); }
+    to { color: inherit; transform: scale(1); }
+}
+
+/* Toast提示 */
+.toast {
+    /* 保持原有样式 */
+}
+
+
+#pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 0;
+}
+
+.page-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.page-button.active {
+    background: #0056b3;
+    font-weight: bold;
+}
+
+.page-button:hover {
+    background: #0056b3;
+}
+
+.dots {
+    padding: 5px 10px;
+    color: #666;
+    font-size: 14px;
+}

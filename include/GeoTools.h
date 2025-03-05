@@ -20,6 +20,7 @@
 class GeoTools {
 public:
     // 读取CSV文件数据放入R树
+    // 优化代码采取mmap读取块
     static std::vector<GeoObject> readCSV(const std::string &fileName,size_t startLine,size_t endLine);
 
     // 统计CSV文件行数

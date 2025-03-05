@@ -21,6 +21,8 @@ private:
 
     std::atomic<bool> running; // 线程运行状态标志
 
+    std::atomic<int> count = 0; // 记录这是第几次执行CSV定时任务
+
     void timeTask(); // 定时任务
 
 public:

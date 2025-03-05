@@ -9,6 +9,7 @@
 
 #include "Public.h"
 #include "GeoServer.h"
+#include "RTreeManager.h"
 
 
 GeoServer *pServer = new GeoServer();

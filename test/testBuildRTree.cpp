@@ -11,6 +11,7 @@
 //GeoServer *pServer = new GeoServer;
 
 #include "Public.h"
+#include "RTreeManager.h"
 
 bgi::rtree<Value, bgi::quadratic<64>> rtree; // R树实例
 std::shared_mutex rtree_mutex; // R树线程安全共享锁

@@ -12,12 +12,12 @@
 
 void GeoTask::timeTask() {
     while (running.load()){
-        std::cout << "定时任务启动: 执行 GeoTools::modifyCSV()" << std::endl;
+        // std::cout << "定时任务启动: 执行 GeoTools::modifyCSV()" << std::endl;
 
         GeoTools::modifyCSV(fileName);
 
         // 使用for循环检查running状态可以随时终止任务线程
-        for (int i = 0; i < 30 && running.load(); ++i) {
+        for (int i = 0; i < 1 && running.load(); ++i) {
             std::this_thread::sleep_for(std::chrono::minutes (1));
         }
     }
@@ -32,6 +32,8 @@ void GeoTask::start() {
 
     running.store(true);
     worker = std::thread(&GeoTask::timeTask,this);
+
+    logger.log(INFO,"定时处理CSV文件任务启动...");
 }
 
 void GeoTask::stop() {

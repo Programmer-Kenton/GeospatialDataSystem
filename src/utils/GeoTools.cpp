@@ -15,54 +15,104 @@
 
 std::vector<GeoObject> GeoTools::readCSV(const std::string &fileName,size_t startLine,size_t endLine) {
     std::vector<GeoObject> geo_objects;
-    std::ifstream file(fileName);
 
-    if (!file.is_open()) {
+    // 打开文件 只读方式
+    int fd = open(fileName.c_str(),O_RDONLY);
+    if (fd == -1){
         std::cerr << "错误: 无法打开文件 - " << fileName << std::endl;
-        logger.log(ERROR, "无法打开文件 - " + fileName);  // 记录日志
+        logger.log(ERROR,"无法打开文件 - " + fileName);
         return geo_objects;
     }
 
-    std::string line;
-    size_t currentLine = 0;
-
-
-    // 跳过前面的行（包括表头）
-    for (size_t i = 1; i < startLine && std::getline(file, line); ++i) {
-        // 什么也不做，仅跳过
+    // 通过fstat获取文件大小
+    struct stat st;
+    if (fstat(fd,&st) == -1){
+        std::cerr << "错误: fstat 失败 - " << fileName << std::endl;
+        logger.log(ERROR, "fstat 失败 - " + fileName);
+        close(fd);
+        return geo_objects;
     }
 
-    GeoObject obj;
-
-    // 从startLine开始读取到endLine包括endLine
-    for(size_t i = startLine;i <= endLine && std::getline(file,line);++i){
-        if (line.empty()) continue;
-
-        std::stringstream ss(line);
-        std::string id_str, type_str, coords_str;
-        if (!std::getline(ss, id_str, ',') ||
-            !std::getline(ss, type_str, ',') ||
-            !std::getline(ss, coords_str)) {
-            std::cerr << "警告: 行格式错误，已跳过: " << line << std::endl;
-            logger.log(WARNING, "行格式错误，已跳过: " + line);
-            continue;
-        }
-        obj.id = id_str;
-        obj.type = type_str;
-
-        // 去除可能的多余字符，如双引号和 \r
-        coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '"'), coords_str.end());
-        coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '\r'), coords_str.end());
-
-        // 解析坐标数据
-        obj.coordinates = GeoTools::parseCoordinates(coords_str);
-        if (!obj.coordinates.empty()) {
-            geo_objects.push_back(obj);
-        } else {
-            std::cerr << "警告: 地理对象 " << obj.id << " 坐标解析失败，已跳过。" << std::endl;
-            logger.log(WARNING, "地理对象 " + obj.id + " 坐标解析失败，已跳过");
-        }
+    size_t fileSize = st.st_size;
+    if (fileSize == 0){
+        std::cerr << "错误: 文件为空 - " << fileName << std::endl;
+        logger.log(WARNING, "文件为空 - " + fileName);
+        close(fd);
+        return geo_objects;
     }
+
+
+    // 使用mmap将整个文件映射到内存 使用MAP_PRIVATE模式 只读
+    void* mapped = mmap(nullptr,fileSize,PROT_READ,MAP_PRIVATE,fd,0);
+    if (mapped == MAP_FAILED){
+        std::cerr << "错误: mmap 失败 - " << fileName << std::endl;
+        logger.log(ERROR, "mmap 失败 - " + fileName);
+        close(fd);
+        return geo_objects;
+    }
+
+
+    // 文件映射成功后，可关闭文件描述符
+    close(fd);
+
+    // 将映射区转换为 char* 指针，便于逐字符处理
+    char* data = static_cast<char*>(mapped);
+    char* dataEnd = data + fileSize;
+
+    size_t currentLine = 0;  // 当前行号
+    char* lineStart = data;  // 当前行的起始地址
+
+
+
+    // 遍历整个映射区，按换行符分割出各行
+    while (lineStart < dataEnd) {
+        // 查找当前行中的换行符 '\n'
+        char* lineEnd = static_cast<char*>(memchr(lineStart, '\n', dataEnd - lineStart));
+        if (!lineEnd) {
+            // 如果找不到换行符，则认为剩余部分为一行
+            lineEnd = dataEnd;
+        }
+        currentLine++; // 行号递增
+
+        // 仅解析在指定行范围内的行（startLine 到 endLine, 包含两端）
+        if (currentLine >= startLine && currentLine <= endLine) {
+            std::string line(lineStart, lineEnd - lineStart);
+            // 去除 Windows 平台可能存在的 '\r' 字符
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            if (!line.empty()) {
+                std::stringstream ss(line);
+                std::string id_str, type_str, coords_str;
+                // 解析 CSV 字段：假设 CSV 格式为 id,type,coords
+                if (!std::getline(ss, id_str, ',') ||
+                    !std::getline(ss, type_str, ',') ||
+                    !std::getline(ss, coords_str)) {
+                    std::cerr << "警告: 行格式错误，已跳过: " << line << std::endl;
+                    logger.log(WARNING, "行格式错误，已跳过: " + line);
+                } else {
+                    GeoObject obj;
+                    obj.id = id_str;
+                    obj.type = type_str;
+                    // 去除多余字符（例如双引号）
+                    coords_str.erase(std::remove(coords_str.begin(), coords_str.end(), '"'), coords_str.end());
+                    // 解析坐标字符串，生成坐标向量（parseCoordinates 函数需自行实现）
+                    obj.coordinates = GeoTools::parseCoordinates(coords_str);
+                    if (!obj.coordinates.empty()) {
+                        geo_objects.push_back(obj);
+                    } else {
+                        std::cerr << "警告: 地理对象 " << obj.id << " 坐标解析失败，已跳过。" << std::endl;
+                        logger.log(WARNING, "地理对象 " + obj.id + " 坐标解析失败，已跳过");
+                    }
+                }
+            }
+        }
+        // 移动到下一行（当前行末尾的下一个字符）
+        lineStart = lineEnd + 1;
+        // 如果当前行号已经达到或超过 endLine，则退出循环
+        if (currentLine >= endLine) break;
+    }
+
+    // 解除内存映射，释放资源
+    munmap(mapped, fileSize);
     return geo_objects;
 }
 
@@ -185,6 +235,7 @@ void GeoTools::modifyCSV(const std::string &fileName) {
             std::ofstream file(fileName, std::ios::app);
             if (!file.is_open()) {
                 std::cerr << "错误: 无法打开文件 - " << fileName << std::endl;
+                logger.log(ERROR,"错误: 无法打开文件 - " + fileName);
             } else {
                 std::cout << "写入前 insertVec的尺寸: " << insertVec.size() << std::endl;
 
@@ -219,12 +270,14 @@ void GeoTools::modifyCSV(const std::string &fileName) {
             std::ifstream inputFile(fileName);
             if (!inputFile.is_open()) {
                 std::cerr << "错误: 无法打开文件 - " << fileName << std::endl;
+                logger.log(ERROR,"错误: 无法打开文件 - " + fileName);
                 return;
             }
 
             std::ofstream tempFile(fileName + ".tmp");
             if (!tempFile.is_open()) {
                 std::cerr << "错误: 无法创建临时文件 - " << fileName + ".tmp" << std::endl;
+                logger.log(ERROR,"错误: 无法创建临时文件 - " + fileName + ".tmp");
                 inputFile.close();
                 return;
             }
@@ -250,6 +303,7 @@ void GeoTools::modifyCSV(const std::string &fileName) {
                     }
                 } catch (const std::exception &e) {
                     std::cerr << "警告: 无法解析行 ID \"" << idStr << "\" - " << e.what() << std::endl;
+                    logger.log(WARNING,"无法解析行 ID" + idStr + " - " + e.what());
                 }
 
                 tempFile << line << '\n';
@@ -261,10 +315,12 @@ void GeoTools::modifyCSV(const std::string &fileName) {
             // 替换原始文件
             if (std::remove(fileName.c_str()) != 0) {
                 std::cerr << "错误: 无法删除原始文件 - " << fileName << std::endl;
+                logger.log(ERROR,"错误: 无法删除原始文件 - " + fileName);
                 return;
             }
             if (std::rename((fileName + ".tmp").c_str(), fileName.c_str()) != 0) {
                 std::cerr << "错误: 无法重命名临时文件为原始文件 - " << fileName << std::endl;
+                logger.log(ERROR,"错误: 无法重命名临时文件为原始文件 - " + fileName);
                 return;
             }
 

@@ -1,0 +1,5 @@
+{
+  "DataFile": "/usr/local/WorkSpace/GeospatialDataSystem/data/geospatial_data.csv",
+  "ScriptFile": "/usr/local/WorkSpace/GeospatialDataSystem/script/InsertGeoData.py",
+  "GeoLog": "/usr/local/WorkSpace/GeospatialDataSystem/log/GeoSystem.log"
+}

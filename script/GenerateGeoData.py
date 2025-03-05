@@ -40,7 +40,7 @@ def generate_random_geometry():
 
 
 # 生成数据集并保存为CSV文件
-def generate_geospatial_dataset(num_records=100000):
+def generate_geospatial_dataset(num_records=1000):
     data = []
     for record_id in range(1, num_records + 1):
         geometry, geom_type = generate_random_geometry()

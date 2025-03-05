@@ -47,10 +47,10 @@ public:
     std::vector<Value> searchRTree(const Box& queryBox) const;
 
     // 向R树插入数据
-    void insertRTree(const Box& bounding_box, const std::string& str);
+    void insertBatchRTree(const std::vector<std::pair<Box, std::string>>& batchData);
 
     // 删除R树的数据
-    bool deleteRTree();
+    bool deleteRTree(ThreadPool& pool);
 
     // 打印R树
     void printRTree() const;

@@ -59,8 +59,10 @@ private:
     // 将日志级别转换为字符串表示
     std::string logLevelToString(LogLevel level);
 
+
+
 public:
-    explicit GeoLogger(std::string logFile = "GeoLog.log",bool async = true);
+    explicit GeoLogger(std::string logFile,bool async = true);
 
     ~GeoLogger();
 
@@ -69,6 +71,14 @@ public:
 
     // 写入日志
     void log(LogLevel level,const std::string& message);
+
+    void setLogFile(const std::string& fileName){
+        logFile = fileName;
+    }
+
+    // 删除拷贝构造函数和赋值运算符，防止拷贝实例
+    GeoLogger(const GeoLogger&) = delete;
+    GeoLogger& operator=(const GeoLogger&) = delete;
 };
 
 

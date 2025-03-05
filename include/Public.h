@@ -9,7 +9,6 @@
 #define GEOSPATIALDATASYSTEM_PUBLIC_H
 
 #include "GeoObject.h"
-#include "RTreeManager.h"
 #include "GeoLogger.h"
 #include "ThreadPool.h"
 #include "httplib.h"
@@ -19,6 +18,10 @@
 #include <mutex>
 #include <string>
 
+// 前向声明解决循环依赖
+class RTreeManager;
+
+
 extern std::atomic<unsigned long long int> id;
 extern std::vector<GeoObject> insertVec; // 存储新生成的地理信息数据
 extern std::mutex insert_mutex;
@@ -27,15 +30,19 @@ extern std::mutex delete_mutex;
 extern std::unordered_set<unsigned long long> deleteRtreeSet; // 存储R树要删除的id号对应的信息
 extern std::mutex deleteRTree_mutex;
 extern std::string fileName; // CSV文件路径
+extern std::string scriptFile; // Python插入随机数据脚本路径
+extern std::string GeoLog; // 系统日志路径
 extern GeoLogger logger;
 extern httplib::Server server;
 extern int deleteCount;
+
+extern RTreeManager *manager;
 
 #define POINT "Point"
 #define LINE "Line"
 #define POLYGON "Polygon"
 
-extern RTreeManager *manager;
+
 
 
 

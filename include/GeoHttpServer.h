@@ -36,6 +36,9 @@ public:
     // 处理OPTIONS请求
     void handleOptions(const httplib::Request &req, httplib::Response &res);
 
+    // 接收前端请求获取数据集系统总数据量
+    void handleGetTotal(const httplib::Request &req, httplib::Response &res);
+
     // 处理查询、删除、插入等请求的主逻辑
     void setupRoutes(httplib::Server &server);
 
